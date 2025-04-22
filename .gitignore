@@ -1,0 +1,6 @@
+.DS_Store
+.ipynb_checkpoints
+__pycache__
+
+*.ipynb
+lupu_0.5_15_R10000.db
