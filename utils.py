@@ -32,18 +32,34 @@ def miri_data():
     return out
 
 def get_data():
-    miri = miri_data()
+    # Get NIRSpec and NIRISS
     with open('data/lowres.pkl','rb') as f:
         data = pickle.load(f)
-    data['miri'] = miri
     del data['all']
 
-    # Set all key
+    # Add miri data
+    miri = miri_data()
+    data['miri'] = miri
+
+    # Split G395H into NRS1 and NRS2
+    nrs1 = {}
+    nrs2 = {}
+    inds1 = np.where(data['g395h']['wv'] < 3.78)
+    inds2 = np.where(data['g395h']['wv'] >= 3.78)
+    for key in data['g395h']:
+        # if key == 'wv_bins':
+        nrs1[key] = data['g395h'][key][inds1]
+        nrs2[key] = data['g395h'][key][inds2]
+    del data['g395h']
+    data['nrs1'] = nrs1
+    data['nrs2'] = nrs2
+
+    # Compute all data
     out = {}
     for key in data['miri']:
         out[key] = np.zeros((0))
     out['wv_bins'] = np.zeros((0,2))
-    for name in ['soss','g395h','miri']:
+    for name in ['soss','nrs1','nrs2','miri']:
         for key in out:
             out[key] = np.concatenate((out[key],data[name][key]))
     data['all'] = out

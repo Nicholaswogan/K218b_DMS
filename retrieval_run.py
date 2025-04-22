@@ -45,13 +45,29 @@ RETRIEVAL_INPUTS = {
         'prior': retrieval_setup.prior_miri_noDMS,
         'params': retrieval_setup.NAMES_MIRI_NODMS
     },
+    'all': {
+        'data': utils.get_data(),
+        'keys': ['soss','nrs1','nrs2','miri'],
+        'model': retrieval_setup.model_all,
+        'implicit': retrieval_setup.check_implicit_prior_all,
+        'prior': retrieval_setup.prior_all,
+        'params': retrieval_setup.NAMES_ALL
+    },
+    'all_noDMS': {
+        'data': utils.get_data(),
+        'keys': ['soss','nrs1','nrs2','miri'],
+        'model': retrieval_setup.model_all_noDMS,
+        'implicit': retrieval_setup.check_implicit_prior_all_noDMS,
+        'prior': retrieval_setup.prior_all_noDMS,
+        'params': retrieval_setup.NAMES_ALL_NODMS
+    },
 }
 
 if __name__ == '__main__':
 
     # mpiexec -n <number of processes> python retrieval_run.py
 
-    models_to_run = ['miri','miri_noDMS']
+    models_to_run = ['miri','miri_noDMS','all','all_noDMS']
     for model_name in models_to_run:
 
         #~~~ Sets stuff here ~~~#
@@ -64,8 +80,6 @@ if __name__ == '__main__':
         #~~~ End settings stuff ~~~#
 
         out_dir = f'ultranest/{model_name}'
-        if not os.path.isdir(out_dir): 
-            os.mkdir(out_dir) 
 
         # Make sampler
         sampler = ultranest.ReactiveNestedSampler(
