@@ -70,6 +70,13 @@ def model_miri(cube, data):
 
     return rprs2_model_at_data
 
+def check_implicit_prior_miri(cube):
+    log10CH4, log10CO2, log10C2H6S, log10C2H6S2, T, log10P_ref, log10Ptop_cld, offset_miri = cube
+    within_implicit_priors = True
+    if np.sum(10.0**np.array([log10CH4, log10CO2, log10C2H6S, log10C2H6S2])) > 1.0:
+        within_implicit_priors = False
+    return within_implicit_priors 
+
 def prior_miri(cube):
 
     params = np.empty(len(cube))
@@ -112,6 +119,13 @@ def model_miri_noDMS(cube, data):
     rprs2_model_at_data += offset_miri
 
     return rprs2_model_at_data
+
+def check_implicit_prior_miri_noDMS(cube):
+    log10CH4, log10CO2, T, log10P_ref, log10Ptop_cld, offset_miri = cube
+    within_implicit_priors = True
+    if np.sum(10.0**np.array([log10CH4, log10CO2])) > 1.0:
+        within_implicit_priors = False
+    return within_implicit_priors 
 
 def prior_miri_noDMS(cube):
 

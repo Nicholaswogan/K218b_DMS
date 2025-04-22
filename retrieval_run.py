@@ -18,17 +18,22 @@ def loglike(cube):
         y = np.append(y, data[key]['rprs2'])
         e = np.append(e, data[key]['rprs2_err'])
 
+    within_implicit_priors = IMPLICIT_PRIORS(cube)
+
     # Compute model spectrum
-    resulty = MODEL(cube, data)
-    
-    loglikelihood = -0.5*np.sum((y - resulty)**2/e**2)
-    return loglikelihood
+    if within_implicit_priors:
+        resulty = MODEL(cube, data)
+        loglikelihood = -0.5*np.sum((y - resulty)**2/e**2)
+        return loglikelihood
+    else:
+        return 1e-100
 
 RETRIEVAL_INPUTS = { 
     'miri': {
         'data': utils.get_data(),
         'keys': ['miri'],
         'model': retrieval_setup.model_miri,
+        'implicit': retrieval_setup.check_implicit_prior_miri,
         'prior': retrieval_setup.prior_miri,
         'params': retrieval_setup.NAMES_MIRI
     },
@@ -36,6 +41,7 @@ RETRIEVAL_INPUTS = {
         'data': utils.get_data(),
         'keys': ['miri'],
         'model': retrieval_setup.model_miri_noDMS,
+        'implicit': retrieval_setup.check_implicit_prior_miri_noDMS,
         'prior': retrieval_setup.prior_miri_noDMS,
         'params': retrieval_setup.NAMES_MIRI_NODMS
     },
@@ -51,6 +57,7 @@ if __name__ == '__main__':
         #~~~ Sets stuff here ~~~#
         DATA_DICT = RETRIEVAL_INPUTS[model_name]['data']
         DATA_KEYS = RETRIEVAL_INPUTS[model_name]['keys']
+        IMPLICIT_PRIORS = RETRIEVAL_INPUTS[model_name]['implicit']
         MODEL = RETRIEVAL_INPUTS[model_name]['model']
         PRIOR = RETRIEVAL_INPUTS[model_name]['prior']
         PARAM_NAMES = RETRIEVAL_INPUTS[model_name]['params']
