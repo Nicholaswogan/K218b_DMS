@@ -87,7 +87,7 @@ if __name__ == '__main__':
             loglike,
             PRIOR,
             log_dir=out_dir, 
-            resume='overwrite'
+            resume='resume'
         )
 
         # Retrieval
