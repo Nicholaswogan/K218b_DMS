@@ -26,7 +26,7 @@ def loglike(cube):
         loglikelihood = -0.5*np.sum((y - resulty)**2/e**2)
         return loglikelihood
     else:
-        return 1e-100
+        return -1.0e100
 
 RETRIEVAL_INPUTS = { 
     'miri': {
