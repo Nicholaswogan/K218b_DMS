@@ -3,6 +3,9 @@ import numpy as np
 from photochem.utils import stars
 import pickle
 import pandas as pd
+from scipy import optimize
+from scipy import special
+import warnings
 
 class K218b:
     planet_radius = 2.610 # Earth radii
@@ -105,6 +108,15 @@ def regrid_model(wavl_h, rprs2_h, R):
     rprs2 = stars.rebin(wavl_h.copy(), rprs2_h.copy(), wavl.copy())
     return wv, wavl, rprs2
 
+def wv_bins_at_resolution(min_wv, max_wv, R):
+    wavl = stars.grid_at_resolution(min_wv, max_wv, R)
+    wv = (wavl[1:] + wavl[:-1])/2
+    wv_bins = np.empty((len(wavl)-1,2))
+    for i in range(len(wavl)-1):
+        wv_bins[i,0] = wavl[i]
+        wv_bins[i,1] = wavl[i+1]
+    return wv, wavl, wv_bins
+
 def model_spectrum(opa, case1, T, log10CH4, log10CO2, log10C2H6S, log10C2H6S2, log10P_ref, log10Ptop_cld, nz=60, atmosphere_kwargs={}):
 
     f_CH4, f_CO2, f_C2H6S, f_C2H6S2 = 10.0**log10CH4, 10.0**log10CO2, 10.0**log10C2H6S, 10.0**log10C2H6S2
@@ -132,3 +144,59 @@ def model_spectrum(opa, case1, T, log10CH4, log10CO2, log10C2H6S, log10C2H6S2, l
     wavl_h, rprs2_h = spectrum(opa, case1, atm, log10Ptop_cld, atmosphere_kwargs)
 
     return wavl_h, rprs2_h
+
+
+
+def rho_fcn(sigma):
+    return 1 - special.erf(sigma/np.sqrt(2))
+
+def bayes_factor(sigma):
+    r = rho_fcn(sigma)
+    return - 1/(np.exp(1)*r*np.log(r))
+
+def objective(x, bayes_factor_input):
+    sigma = x[0]
+    return bayes_factor(sigma) - bayes_factor_input
+
+def sigma_significance(bayes_factor_input):
+    if bayes_factor_input > 1e8:
+        warnings.warn("Bayes factors larger than 1e8 can not be computed. Returning sigma = 6.392455915996625")
+        return 6.392455915996625
+    if bayes_factor_input <= 1:
+        return 0.9004526284839545
+    initial_cond = np.array([6.0])
+    sol = optimize.root(objective, initial_cond, args = (bayes_factor_input,))
+    if not sol.success:
+        raise Exception("Root solving failed: "+sol.message)
+    return sol.x[0]
+
+def detection_sigma(lnB):
+    """Computes detection sigma from bayes factor.
+
+    Parameters
+    ----------
+    lnB : float
+        The natural log of the bayes factor
+
+    Returns
+    -------
+    float
+        Detection "sigma" significance.
+
+    """
+    if lnB < np.log(2e1):
+        return sigma_significance(np.exp(lnB))
+    
+    logp = np.arange(-100.00,-0.00,.01) #reverse order
+    logp = logp[::-1] # original order
+    P = 10.0**logp
+    Barr = -1./(np.exp(1)*P*np.log(P))
+
+    sigma = np.arange(0.1,100.10,.01)
+    p_p = special.erfc(sigma/np.sqrt(2.0))
+
+    B = np.exp(lnB)
+    pvalue = 10.0**np.interp(np.log10(B),np.log10(Barr),np.log10(P))
+    sig = np.interp(pvalue,p_p[::-1],sigma[::-1])
+
+    return sig
