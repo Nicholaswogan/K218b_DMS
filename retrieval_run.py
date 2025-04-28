@@ -37,14 +37,6 @@ RETRIEVAL_INPUTS = {
         'prior': retrieval_setup.prior_miri,
         'params': retrieval_setup.NAMES_MIRI
     },
-    'miri2': {
-        'data': utils.get_data(),
-        'keys': ['miri'],
-        'model': retrieval_setup.model_miri2,
-        'implicit': retrieval_setup.check_implicit_prior_miri2,
-        'prior': retrieval_setup.prior_miri2,
-        'params': retrieval_setup.NAMES_MIRI2
-    },
     'miri_noDMS': {
         'data': utils.get_data(),
         'keys': ['miri'],
@@ -61,14 +53,6 @@ RETRIEVAL_INPUTS = {
         'prior': retrieval_setup.prior_all,
         'params': retrieval_setup.NAMES_ALL
     },
-    'all2': {
-        'data': utils.get_data(),
-        'keys': ['soss','nrs1','nrs2','miri'],
-        'model': retrieval_setup.model_all2,
-        'implicit': retrieval_setup.check_implicit_prior_all2,
-        'prior': retrieval_setup.prior_all2,
-        'params': retrieval_setup.NAMES_ALL2
-    },
     'all_noDMS': {
         'data': utils.get_data(),
         'keys': ['soss','nrs1','nrs2','miri'],
@@ -83,7 +67,7 @@ if __name__ == '__main__':
 
     # mpiexec -n <number of processes> python retrieval_run.py
 
-    models_to_run = ['miri2']
+    models_to_run = ['miri','miri_noDMS','all','all_noDMS']
     for model_name in models_to_run:
 
         #~~~ Sets stuff here ~~~#
