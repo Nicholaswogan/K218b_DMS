@@ -145,8 +145,6 @@ def model_spectrum(opa, case1, T, log10CH4, log10CO2, log10C2H6S, log10C2H6S2, l
 
     return wavl_h, rprs2_h
 
-
-
 def rho_fcn(sigma):
     return 1 - special.erf(sigma/np.sqrt(2))
 
