@@ -56,7 +56,7 @@ def make_band(model, result, ind_miri, wv, wv_bins, n):
 
     return band
 
-def main():
+def figure1():
 
     data = DATA
 
@@ -137,11 +137,12 @@ def main():
 
     ax.legend(ncol=3,bbox_to_anchor=(0.0, 1.01), loc='upper left',fontsize=11,frameon=False)
 
+    # grid
     B = np.exp(result_miri['logz']-result_miri_noDMS['logz'])
     sig = utils.detection_sigma(np.log(B))
     note = r'$\bf{Retrieval}$ $\bf{with}$ $\bf{only}$ $\bf{MIRI}$ $\bf{data}$'+\
-    '\nDMS/DMDS det. Bayes Factor = %.1f'%(B)+\
-    '\nDMS/DMDS det. significance = %.1f$\sigma$'%(sig)
+    '\nDMS/DMDS detection Bayes Factor = %.1f'%(B)+\
+    '\nDMS/DMDS detection significance = %.1f$\sigma$'%(sig)
     ax.text(0.5, 1.02, note, size = 12, ha='center', va='bottom',transform=ax.transAxes)
 
     rec = matplotlib.patches.Rectangle((-0.125,-1.38), 1.15, 2.73, fill=False, lw=1.5, clip_on=False,transform=ax.transAxes)
@@ -153,7 +154,7 @@ def main():
 
     res = res_miri
     shift = 0
-    ax.plot(res['all']['wv'], (res['all']['rprs2']+shift)*1e2, c='k', lw=1.5, label='Max likelihood')
+    ax.plot(res['all']['wv'], (res['all']['rprs2']+shift)*1e2, c='k', lw=1.5, label='Max likelihood\nmodel')
     ax.plot(res['all']['wv'], (res['cloud']['rprs2']+shift)*1e2, c='brown', ls='--', label='cloud')
     ax.plot(res['all']['wv'], (res['CH4']['rprs2']+shift)*1e2, c='C1', ls='--', label='CH$_4$')
     ax.plot(res['all']['wv'], (res['CO2']['rprs2']+shift)*1e2, c='C2', ls='--', label='CO$_2$')
@@ -188,8 +189,8 @@ def main():
     B = np.exp(result_all['logz']-result_all_noDMS['logz'])
     sig = utils.detection_sigma(np.log(B))
     note = r'$\bf{Retrieval}$ $\bf{with}$ $\bf{all}$ $\bf{data}$'+\
-    '\nDMS/DMDS det. Bayes Factor = %.1f'%(B)+\
-    '\nDMS/DMDS det. significance = 0$\sigma$ (no detection)'
+    '\nDMS/DMDS detection Bayes Factor = %.1f'%(B)+\
+    '\nDMS/DMDS detection significance = 0$\sigma$ (no detection)'
     ax.text(0.5, 1.02, note, size = 12, ha='center', va='bottom',transform=ax.transAxes)
 
     rec = matplotlib.patches.Rectangle((-0.125,-1.38), 1.15, 2.73, fill=False, lw=1.5, clip_on=False,transform=ax.transAxes)
@@ -201,7 +202,7 @@ def main():
 
     res = res_all
     shift = 0
-    ax.plot(res['all']['wv'], (res['all']['rprs2']+shift)*1e2, c='k', lw=1.5, label='Max likelihood')
+    ax.plot(res['all']['wv'], (res['all']['rprs2']+shift)*1e2, c='k', lw=1.5, label='Max likelihood\nmodel')
     ax.plot(res['all']['wv'], (res['cloud']['rprs2']+shift)*1e2, c='brown', ls='--', label='cloud')
     ax.plot(res['all']['wv'], (res['CH4']['rprs2']+shift)*1e2, c='C1', ls='--', label='CH$_4$')
     ax.plot(res['all']['wv'], (res['CO2']['rprs2']+shift)*1e2, c='C2', ls='--', label='CO$_2$')
@@ -225,5 +226,22 @@ def main():
 
     plt.savefig('figures/DMS_retrieval.pdf',bbox_inches='tight')
 
+def corner_plots():
+
+    key = 'miri'
+    with open('ultranest/'+key+'/'+key+'.pkl','rb') as f:
+        result_miri = pickle.load(f)
+    
+    key = 'all'
+    with open('ultranest/'+key+'/'+key+'.pkl','rb') as f:
+        result_all = pickle.load(f)
+
+    uplot.cornerplot(result_miri)
+    plt.savefig('figures/corner_miri_data.pdf',bbox_inches='tight')
+
+    uplot.cornerplot(result_all)
+    plt.savefig('figures/corner_all_data.pdf',bbox_inches='tight')
+
 if __name__ == '__main__':
-    main()
+    figure1()
+    corner_plots()
