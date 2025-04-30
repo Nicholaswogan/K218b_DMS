@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import pickle
+# from pymultinest.solve import solve
 import ultranest
 from threadpoolctl import threadpool_limits
 _ = threadpool_limits(limits=1)
@@ -45,6 +46,22 @@ RETRIEVAL_INPUTS = {
         'prior': retrieval_setup.prior_miri_noDMS,
         'params': retrieval_setup.NAMES_MIRI_NODMS
     },
+    'mirip': {
+        'data': utils.get_data(),
+        'keys': ['miri'],
+        'model': retrieval_setup.model_mirip,
+        'implicit': retrieval_setup.check_implicit_prior_mirip,
+        'prior': retrieval_setup.prior_mirip,
+        'params': retrieval_setup.NAMES_MIRIP
+    },
+    'mirip_noDMS': {
+        'data': utils.get_data(),
+        'keys': ['miri'],
+        'model': retrieval_setup.model_mirip_noDMS,
+        'implicit': retrieval_setup.check_implicit_prior_mirip_noDMS,
+        'prior': retrieval_setup.prior_mirip_noDMS,
+        'params': retrieval_setup.NAMES_MIRIP_NODMS
+    },
     'all': {
         'data': utils.get_data(),
         'keys': ['soss','nrs1','nrs2','miri'],
@@ -67,7 +84,7 @@ if __name__ == '__main__':
 
     # mpiexec -n <number of processes> python retrieval_run.py
 
-    models_to_run = ['miri','miri_noDMS','all','all_noDMS']
+    models_to_run = ['mirip','mirip_noDMS']
     for model_name in models_to_run:
 
         #~~~ Sets stuff here ~~~#
@@ -94,6 +111,18 @@ if __name__ == '__main__':
         results = sampler.run(
             min_num_live_points=500,
         )
+
+        # out_dir = f'pymultinest/{model_name}/{model_name}'
+        # if not os.path.isdir(f'pymultinest/{model_name}'):
+        #     os.mkdir(f'pymultinest/{model_name}')
+
+        # results = solve(
+        #     LogLikelihood=loglike, 
+        #     Prior=PRIOR, 
+	    #     n_dims=len(PARAM_NAMES), 
+        #     outputfiles_basename=out_dir, 
+        #     verbose=True
+        # )
 
         # Save pickle
         pickle.dump(results, open(f'{out_dir}/{model_name}.pkl','wb'))

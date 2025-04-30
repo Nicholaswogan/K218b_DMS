@@ -6,7 +6,7 @@ All calculations and Figure 1 in Wogan and Batalha (2025) are reproduced in two 
 
 ## Step 1: Installation and setup
 
-If you do not have Anaconda on your system, install it at this link or in any way you prefer: https://www.anaconda.com/download . Next, run the following code to create a conda environment `k218b_dms`.
+If you do not have Anaconda on your system, install it here or in any way you prefer: https://www.anaconda.com/download . Next, in a terminal navigate to the directory you downloaded from Zenodo and run the following code to create a conda environment `k218b_dms`.
 
 ```bash
 conda create -n k218b_dms -c conda-forge -c bokeh python photochem=0.6.5 numpy=1.24 matplotlib pandas pip numba xarray pathos threadpoolctl bokeh=2.4.3 mpi4py wget unzip tar ultranest

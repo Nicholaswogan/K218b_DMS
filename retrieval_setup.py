@@ -2,9 +2,13 @@ from picaso import justdoit as jdi
 import numpy as np
 import os
 import utils
+from scipy import stats
 
 def quantile_to_uniform(quantile, lower_bound, upper_bound):
     return quantile*(upper_bound - lower_bound) + lower_bound
+
+def quantile_to_truncgauss(quantile, low, high, mu, sigma):
+    return stats.truncnorm.ppf(quantile, low/sigma - mu/sigma, high/sigma - mu/sigma, loc=mu, scale=sigma)
 
 def create_picaso():
     filename_db = os.path.join('lupu_0.5_15_R10000.db')
@@ -138,6 +142,71 @@ def prior_miri_noDMS(cube):
     params = np.empty(len(cube))
     for i in range(len(params)):
         params[i] = quantile_to_uniform(cube[i], *PRIORS_MIRI_NODMS[i])
+
+    return params
+
+####################
+#~~~ mirip ~~~#
+####################
+
+PARAM_MIRIP = [
+    ['log10CH4', [-13.0, -0.3, -1.89, 0.665]], 
+    ['log10CO2', [-13.0, -0.3, -2.05, 0.67]], 
+    ['log10C2H6S', [-13.0, -0.3]], 
+    ['log10C2H6S2', [-13.0, -0.3]], 
+    ['T', [100.0, 500.0, 235.0, 67.0]],
+    ['log10P_ref', [-6.0, 0.0]],
+    ['log10Ptop_cld', [-6.0, 1.0, -0.46, 1.05]],
+    ['offset_miri', [-100.0e-6, 100.0e-6]]
+]
+NAMES_MIRIP = [a[0] for a in PARAM_MIRIP]
+PRIORS_MIRIP = [a[1] for a in PARAM_MIRIP]
+
+model_mirip = model_miri
+
+check_implicit_prior_mirip = check_implicit_prior_miri
+
+def prior_mirip(cube):
+
+    params = np.empty(len(cube))
+    for i in range(len(params)):
+        if len(PRIORS_MIRIP[i]) == 4:
+            # Truncated Gaussian
+            params[i] = quantile_to_truncgauss(cube[i], *PRIORS_MIRIP[i])
+        else:
+            # Uniform
+            params[i] = quantile_to_uniform(cube[i], *PRIORS_MIRIP[i])
+
+    return params
+
+#####################
+#~~~ mirip_noDMS ~~~#
+#####################
+PARAM_MIRIP_NODMS = [
+    ['log10CH4', [-13.0, -0.3, -1.89, 0.665]], 
+    ['log10CO2', [-13.0, -0.3, -2.05, 0.67]], 
+    ['T', [100.0, 500.0, 235.0, 67.0]],
+    ['log10P_ref', [-6.0, 0.0]],
+    ['log10Ptop_cld', [-6.0, 1.0, -0.46, 1.05]],
+    ['offset_miri', [-100.0e-6, 100.0e-6]]
+]
+NAMES_MIRIP_NODMS = [a[0] for a in PARAM_MIRIP_NODMS]
+PRIORS_MIRIP_NODMS = [a[1] for a in PARAM_MIRIP_NODMS]
+
+model_mirip_noDMS = model_miri_noDMS
+
+check_implicit_prior_mirip_noDMS = check_implicit_prior_miri_noDMS
+
+def prior_mirip_noDMS(cube):
+
+    params = np.empty(len(cube))
+    for i in range(len(params)):
+        if len(PRIORS_MIRIP_NODMS[i]) == 4:
+            # Truncated Gaussian
+            params[i] = quantile_to_truncgauss(cube[i], *PRIORS_MIRIP_NODMS[i])
+        else:
+            # Uniform
+            params[i] = quantile_to_uniform(cube[i], *PRIORS_MIRIP_NODMS[i])
 
     return params
 
