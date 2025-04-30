@@ -29,7 +29,7 @@ def loglike(cube):
 
 RETRIEVAL_INPUTS = { 
     'miri': {
-        'data': utils.get_data(),
+        'data': utils.get_data(lowres=False),
         'keys': ['miri'],
         'model': retrieval_setup.model_miri,
         'implicit': retrieval_setup.check_implicit_prior_miri,
@@ -37,31 +37,15 @@ RETRIEVAL_INPUTS = {
         'params': retrieval_setup.NAMES_MIRI
     },
     'miri_noDMS': {
-        'data': utils.get_data(),
+        'data': utils.get_data(lowres=False),
         'keys': ['miri'],
         'model': retrieval_setup.model_miri_noDMS,
         'implicit': retrieval_setup.check_implicit_prior_miri_noDMS,
         'prior': retrieval_setup.prior_miri_noDMS,
         'params': retrieval_setup.NAMES_MIRI_NODMS
     },
-    'mirip': {
-        'data': utils.get_data(),
-        'keys': ['miri'],
-        'model': retrieval_setup.model_mirip,
-        'implicit': retrieval_setup.check_implicit_prior_mirip,
-        'prior': retrieval_setup.prior_mirip,
-        'params': retrieval_setup.NAMES_MIRIP
-    },
-    'mirip_noDMS': {
-        'data': utils.get_data(),
-        'keys': ['miri'],
-        'model': retrieval_setup.model_mirip_noDMS,
-        'implicit': retrieval_setup.check_implicit_prior_mirip_noDMS,
-        'prior': retrieval_setup.prior_mirip_noDMS,
-        'params': retrieval_setup.NAMES_MIRIP_NODMS
-    },
     'all': {
-        'data': utils.get_data(),
+        'data': utils.get_data(lowres=True),
         'keys': ['soss','nrs1','nrs2','miri'],
         'model': retrieval_setup.model_all,
         'implicit': retrieval_setup.check_implicit_prior_all,
@@ -69,7 +53,23 @@ RETRIEVAL_INPUTS = {
         'params': retrieval_setup.NAMES_ALL
     },
     'all_noDMS': {
-        'data': utils.get_data(),
+        'data': utils.get_data(lowres=True),
+        'keys': ['soss','nrs1','nrs2','miri'],
+        'model': retrieval_setup.model_all_noDMS,
+        'implicit': retrieval_setup.check_implicit_prior_all_noDMS,
+        'prior': retrieval_setup.prior_all_noDMS,
+        'params': retrieval_setup.NAMES_ALL_NODMS
+    },
+    'allhr': {
+        'data': utils.get_data(lowres=False),
+        'keys': ['soss','nrs1','nrs2','miri'],
+        'model': retrieval_setup.model_all,
+        'implicit': retrieval_setup.check_implicit_prior_all,
+        'prior': retrieval_setup.prior_all,
+        'params': retrieval_setup.NAMES_ALL
+    },
+    'allhr_noDMS': {
+        'data': utils.get_data(lowres=False),
         'keys': ['soss','nrs1','nrs2','miri'],
         'model': retrieval_setup.model_all_noDMS,
         'implicit': retrieval_setup.check_implicit_prior_all_noDMS,
@@ -82,8 +82,8 @@ if __name__ == '__main__':
 
     # mpiexec -n <number of processes> python retrieval_run.py
 
-    sampling = 'ultranest'
-    models_to_run = ['mirip','mirip_noDMS']
+    sampling = 'pymultinest'
+    models_to_run = ['miri','miri_noDMS','all','all_noDMS','allhr','allhr_noDMS']
     for model_name in models_to_run:
 
         #~~~ Sets stuff here ~~~#
@@ -120,15 +120,18 @@ if __name__ == '__main__':
             from pymultinest.solve import solve
 
             outputfiles_basename = f'pymultinest/{model_name}/{model_name}'
-            if not os.path.isdir(f'pymultinest/{model_name}'):
+            try:
                 os.mkdir(f'pymultinest/{model_name}')
+            except FileExistsError:
+                pass
 
             results = solve(
                 LogLikelihood=loglike, 
                 Prior=PRIOR, 
                 n_dims=len(PARAM_NAMES), 
                 outputfiles_basename=outputfiles_basename, 
-                verbose=True
+                verbose=True,
+                n_live_points=1000
             )
 
             # Save pickle

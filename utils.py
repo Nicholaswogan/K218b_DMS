@@ -34,7 +34,7 @@ def miri_data():
     }
     return out
 
-def get_data():
+def get_data_old():
     # Get NIRSpec and NIRISS
     with open('data/lowres.pkl','rb') as f:
         data = pickle.load(f)
@@ -57,6 +57,66 @@ def get_data():
     data['nrs1'] = nrs1
     data['nrs2'] = nrs2
 
+    # Compute all data
+    out = {}
+    for key in data['miri']:
+        out[key] = np.zeros((0))
+    out['wv_bins'] = np.zeros((0,2))
+    for name in ['soss','nrs1','nrs2','miri']:
+        for key in out:
+            out[key] = np.concatenate((out[key],data[name][key]))
+    data['all'] = out
+
+    return data
+
+def get_madhu_data(filename):
+
+    wv, wv_err, rprs2, rprs2_err = np.loadtxt(filename,skiprows=1).T
+    
+    wv_bins = np.empty((len(wv),2))
+    for i in range(len(wv)):
+        wv_bins[i,0] = wv[i] - wv_err[i]
+        wv_bins[i,1] = wv[i] + wv_err[i]
+
+    out = {
+        'wv': wv,
+        'rprs2': rprs2,
+        'rprs2_err': rprs2_err,
+        'wv_err': wv_err,
+        'wv_bins': wv_bins
+    }
+    return out
+
+def split_g395h(g395h):
+    # Split G395H into NRS1 and NRS2
+    nrs1 = {}
+    nrs2 = {}
+    inds1 = np.where(g395h['wv'] < 3.78)
+    inds2 = np.where(g395h['wv'] >= 3.78)
+    for key in g395h:
+        nrs1[key] = g395h[key][inds1]
+        nrs2[key] = g395h[key][inds2]
+    return nrs1, nrs2
+
+def get_data(lowres=True):
+
+    if lowres:
+        soss = get_madhu_data('data/K2-18b_niriss_soss_lowres.txt')
+        g395h = get_madhu_data('data/K2-18b_nirspec_g395h_lowres.txt')
+    else:
+        soss = get_madhu_data('data/K2-18b_niriss_soss_native.txt')
+        g395h = get_madhu_data('data/K2-18b_nirspec_g395h_native.txt')
+    nrs1, nrs2 = split_g395h(g395h)
+    miri = get_madhu_data('data/K2-18b_miri_lrs_jexores.txt')
+
+    # Collect all data
+    data = {
+        'soss': soss,
+        'nrs1': nrs1,
+        'nrs2': nrs2,
+        'miri': miri,
+    }
+    
     # Compute all data
     out = {}
     for key in data['miri']:
