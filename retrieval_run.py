@@ -1,8 +1,6 @@
 import os
 import numpy as np
 import pickle
-# from pymultinest.solve import solve
-import ultranest
 from threadpoolctl import threadpool_limits
 _ = threadpool_limits(limits=1)
 import utils
@@ -84,6 +82,7 @@ if __name__ == '__main__':
 
     # mpiexec -n <number of processes> python retrieval_run.py
 
+    sampling = 'ultranest'
     models_to_run = ['mirip','mirip_noDMS']
     for model_name in models_to_run:
 
@@ -96,33 +95,41 @@ if __name__ == '__main__':
         PARAM_NAMES = RETRIEVAL_INPUTS[model_name]['params']
         #~~~ End settings stuff ~~~#
 
-        out_dir = f'ultranest/{model_name}'
+        if sampling == 'ultranest':
+            import ultranest
 
-        # Make sampler
-        sampler = ultranest.ReactiveNestedSampler(
-            PARAM_NAMES,
-            loglike,
-            PRIOR,
-            log_dir=out_dir, 
-            resume='resume'
-        )
+            out_dir = f'ultranest/{model_name}'
 
-        # Retrieval
-        results = sampler.run(
-            min_num_live_points=500,
-        )
+            # Make sampler
+            sampler = ultranest.ReactiveNestedSampler(
+                PARAM_NAMES,
+                loglike,
+                PRIOR,
+                log_dir=out_dir, 
+                resume='resume'
+            )
 
-        # out_dir = f'pymultinest/{model_name}/{model_name}'
-        # if not os.path.isdir(f'pymultinest/{model_name}'):
-        #     os.mkdir(f'pymultinest/{model_name}')
+            # Retrieval
+            results = sampler.run(
+                min_num_live_points=500,
+            )
 
-        # results = solve(
-        #     LogLikelihood=loglike, 
-        #     Prior=PRIOR, 
-	    #     n_dims=len(PARAM_NAMES), 
-        #     outputfiles_basename=out_dir, 
-        #     verbose=True
-        # )
+            pickle.dump(results, open(f'{out_dir}/{model_name}.pkl','wb'))
 
-        # Save pickle
-        pickle.dump(results, open(f'{out_dir}/{model_name}.pkl','wb'))
+        elif sampling == 'pymultinest':
+            from pymultinest.solve import solve
+
+            outputfiles_basename = f'pymultinest/{model_name}/{model_name}'
+            if not os.path.isdir(f'pymultinest/{model_name}'):
+                os.mkdir(f'pymultinest/{model_name}')
+
+            results = solve(
+                LogLikelihood=loglike, 
+                Prior=PRIOR, 
+                n_dims=len(PARAM_NAMES), 
+                outputfiles_basename=outputfiles_basename, 
+                verbose=True
+            )
+
+            # Save pickle
+            pickle.dump(results, open(outputfiles_basename+'.pkl','wb'))
